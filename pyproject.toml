@@ -1,0 +1,17 @@
+[project]
+name = "rmt-portfolio-optimization"
+version = "0.1.0"
+description = "Covariance cleaning through multiple paradigms for minimum variance portfolios"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+        "numpy",
+        "scipy",
+        "pandas",
+        "matplotlib",
+        "yfinance",
+]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
