@@ -1,4 +1,4 @@
-data/
+data/*
 !data/info.json
 .venv/
 __pycache__/

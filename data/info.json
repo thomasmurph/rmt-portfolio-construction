@@ -1,0 +1,16 @@
+{
+  "date_downloaded": "2026-06-10",
+  "filter_counts": {
+    "universe": 503,
+    "has_data": 503,
+    "listed_by_window_start": 357,
+    "coverage": 357,
+    "complete_after_ffill": 357,
+    "selected": 300
+  },
+  "n_stocks": 300,
+  "n_days": 6395,
+  "first_day": "2001-01-04",
+  "last_day": "2026-06-10",
+  "returns_over_50pct": 28
+}
