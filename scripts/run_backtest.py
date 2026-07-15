@@ -38,7 +38,9 @@ def long_only_min_var(cov, w_start=None):
     return pd.Series(res.x, index=cov.index)
 
 
-def run_backtest(returns, estimator, T, start="2005-02-01", long_only=False):
+def run_backtest(
+    returns, estimator, T, start="2005-02-01", long_only=False, equal_weight=False
+):
     idx = returns.index
     rebs = idx[idx >= start]
     rebs = rebs[~rebs.to_period("M").duplicated()]
@@ -51,7 +53,9 @@ def run_backtest(returns, estimator, T, start="2005-02-01", long_only=False):
     for i, p in enumerate(positions):
         window = returns.iloc[p - T : p]
         cov = estimator(window)
-        if long_only:
+        if equal_weight:
+            w = pd.Series(1.0 / len(cov), index=cov.index)
+        elif long_only:
             w = long_only_min_var(cov, None if w_prev is None else w_prev.values)
         else:
             # closed form
@@ -78,10 +82,8 @@ ESTIMATORS = {
     "clipped_raw": lambda w: clipped_cov(w, sigma2=1),
     "lw": lw_cov,
     "rie": rie_cov,
-    # identity "covariance"
-    "one_over_n": lambda w: pd.DataFrame(
-        np.eye(w.shape[1]), index=w.columns, columns=w.columns
-    ),
+    # weights are forced equal, the cov is only used for the predicted vol
+    "one_over_n": sample_cov,
 }
 WINDOWS = [252, 504, 1008]
 
@@ -91,7 +93,13 @@ rf = pd.read_csv(root / "data/rf.csv", index_col=0, parse_dates=True)["rf_daily"
 
 def run_config(key):
     name, T, long_only = key
-    daily, stats = run_backtest(returns, ESTIMATORS[name], T, long_only=long_only)
+    daily, stats = run_backtest(
+        returns,
+        ESTIMATORS[name],
+        T,
+        long_only=long_only,
+        equal_weight=name == "one_over_n",
+    )
     col = f"{name}_{T}" + ("_lo" if long_only else "")
     stats["strategy"] = col
     excess = daily - rf.reindex(daily.index)
