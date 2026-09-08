@@ -62,14 +62,22 @@ def run_backtest(
             w = np.linalg.solve(cov.values, np.ones(len(cov)))
             w = pd.Series(w / w.sum(), index=cov.index)
 
-        end = positions[i + 1] if i + 1 < len(positions) else len(idx)
-        hold = returns.iloc[p:end]
-        daily.append(hold @ w)
-
-        turnover = np.nan if w_prev is None else (w - w_prev).abs().sum()
+        turnover = np.nan if w_prev is None else 0.5 * (w - w_prev).abs().sum()
         predicted_vol = np.sqrt(max(w @ cov.values @ w, 0) * 252)
         stats.append((idx[p], turnover, predicted_vol))
-        w_prev = w
+
+        end = positions[i + 1] if i + 1 < len(positions) else len(idx)
+        hold = returns.iloc[p:end]
+
+        # Buy and hold between monthly rebalances
+        growth = (1 + hold).cumprod()
+        value = growth.mul(w, axis=1).sum(axis=1)
+        period_returns = value.pct_change()
+        period_returns.iloc[0] = value.iloc[0] - 1
+        daily.append(period_returns)
+
+        # Drifted weights immediately before the next rebalance
+        w_prev = w * growth.iloc[-1] / value.iloc[-1]
 
     daily = pd.concat(daily)
     stats = pd.DataFrame(stats, columns=["date", "turnover", "predicted_vol"])

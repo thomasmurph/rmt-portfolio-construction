@@ -32,7 +32,7 @@ for ax, suffix, title in [
     ax.axhline(vol["index_proxy"], color="gray", ls=":", label="buy & hold")
     ax.set_xticks(range(3), [f"{T} days" for T in WINDOWS])
 axes[0].set_ylim(0, 23)  # the sample_252 bar runs off the top
-axes[0].text(-0.3, 11, "3,232%", rotation=90, ha="center", va="center", color="w")
+axes[0].text(-0.3, 11, "3,257%", rotation=90, ha="center", va="center", color="w")
 axes[0].set_ylabel("realized vol (%, annualized)")
 fig.legend(*axes[0].get_legend_handles_labels(), loc="outside upper center", ncol=6)
 Path("figs").mkdir(exist_ok=True)
