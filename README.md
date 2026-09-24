@@ -22,7 +22,11 @@ the 300 most liquid stocks within the S&P 500 index, spanning the years 2005 to 
 
 ![Realized out-of-sample volatility by estimator, window, and constraint set](figs/backtest_vol.png)
 
+*Realized out-of-sample volatility by estimator, estimation window, and constraint set, 2005–2026.*
+
 ![Rolling realized volatility through time](figs/rolling_vol.png)
+
+*Trailing 126-day realized volatility for the best cleaned configuration, the sample covariance in the noisy q ≈ 0.6 regime, and the benchmarks.*
 
 | strategy | window | ann. vol | Sharpe | mean monthly turnover |
 |---|---|---|---|---|
@@ -34,4 +38,4 @@ the 300 most liquid stocks within the S&P 500 index, spanning the years 2005 to 
 | equal weight (1/N) | — | 19.6% | 0.70 | 0 |
 | buy & hold (index proxy) | — | 20.5% | 0.73 | — |
 
-Sharpe is excess of the 13-week T-bill rate. Three findings:
+Sharpe is excess of the 13-week T-bill rate. 
