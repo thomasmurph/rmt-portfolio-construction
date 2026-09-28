@@ -4,7 +4,8 @@ import sys
 
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+root = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(root))
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,7 +13,7 @@ import pandas as pd
 
 from rmt.spectrum import mp_density, mp_edges
 
-returns = pd.read_csv("data/returns.csv.gz", index_col=0, parse_dates=True)
+returns = pd.read_csv(root / "data/returns.csv.gz", index_col=0, parse_dates=True)
 window = returns.loc["2001-01-04":"2004-12-31"]
 T, N = window.shape
 q = N / T
@@ -60,6 +61,6 @@ plt.plot(
 plt.xlabel("eigenvalue")
 plt.ylabel("density")
 plt.legend()
-Path("figs").mkdir(exist_ok=True)
-plt.savefig("figs/spectrum.png")
+(root / "figs").mkdir(exist_ok=True)
+plt.savefig(root / "figs/spectrum.png")
 print("wrote figs/spectrum.png")
