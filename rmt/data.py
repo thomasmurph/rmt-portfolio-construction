@@ -2,8 +2,8 @@
 Data pipeline for yahoo finance data.
 
 Collects daily prices for the current S&P 500 members, keeps the 300
-most liquid (ranked on 2001-2004 dollar volume, unadjusted close so future
-splits don't leak in), saves daily returns and the t-bill rate to data.
+most liquid (ranked on 2001-2004 dollar volume from Close to prevent
+Adj Close dividends leaking in), saves daily returns and the t-bill rate to data.
 """
 
 import datetime
@@ -12,8 +12,8 @@ from pathlib import Path
 import pandas as pd
 import yfinance as yf
 
-DOWNLOAD_START = "2000-9-01"
-WINDOW_START = "2001-01-03"  # first trading day of 2001
+DOWNLOAD_START = "2000-09-01"
+WINDOW_START = "2001-01-03"  # returns start jan 4, jan 2-3 are dropped
 RANK_START, RANK_END = "2001-01-01", "2004-12-31"
 N_TARGET = 300
 FFILL_LIMIT = 5  # maximum acceptable days to forward fill
@@ -24,7 +24,7 @@ DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 
 def download_panels(tickers, start):
-    """Download Adj and Raw Close and Volume."""
+    """Download Adj and split-adjusted Close and Volume."""
     raw = yf.download(tickers, start=start, auto_adjust=False)
     if raw is None or raw.empty:
         raise RuntimeError("Yahoo Data Download Failed")
@@ -61,7 +61,7 @@ def select_tickers(adj_close, close, volume):
     tickers = [t for t in tickers if complete[t]]
     counts["complete_after_ffill"] = len(tickers)
 
-    # sorts by dollar volume over window
+    # sorts by dollar volume over ranking period
     dollar_volume = (close[tickers] * volume[tickers]).loc[RANK_START:RANK_END].mean()
     ranked = dollar_volume.sort_values(ascending=False).index.tolist()
 

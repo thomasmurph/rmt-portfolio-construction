@@ -24,7 +24,7 @@ sigma2 = 1 - eigenvalues[-1] / N
 
 high = mp_edges(q)[1]
 
-# OLS model to fit the best sigma2 and q to the histogram of the eigenvalues
+# least squares grid search to fit the best sigma2 and q to the histogram of the eigenvalues
 counts, bin_edges = np.histogram(
     eigenvalues, bins=60, range=(0, 2 * high), density=True
 )
