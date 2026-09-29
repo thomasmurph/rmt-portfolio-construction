@@ -20,6 +20,8 @@ from scipy.optimize import minimize
 from rmt.data import RANK_START, RANK_END
 from rmt.estimators import sample_cov, clipped_cov, lw_cov, rie_cov
 
+BACKTEST_START = "2005-02-01"
+
 
 def long_only_min_var(cov, w_start=None):
     S = cov.values
@@ -35,11 +37,13 @@ def long_only_min_var(cov, w_start=None):
         # default ftol is too loose for daily variances (~1e-4), stops ~15% above the optimum
         options={"ftol": 1e-12, "maxiter": 1000},
     )
+    if not res.success:
+        raise RuntimeError(res.message)
     return pd.Series(res.x, index=cov.index)
 
 
 def run_backtest(
-    returns, estimator, T, start="2005-02-01", long_only=False, equal_weight=False
+    returns, estimator, T, start=BACKTEST_START, long_only=False, equal_weight=False
 ):
     idx = returns.index
     rebs = idx[idx >= start]
@@ -99,6 +103,14 @@ returns = pd.read_csv(root / "data/returns.csv.gz", index_col=0, parse_dates=Tru
 rf = pd.read_csv(root / "data/rf.csv", index_col=0, parse_dates=True)["rf_daily"]
 
 
+def summary(col, daily):
+    excess = daily - rf.reindex(daily.index)
+    return (
+        f"{col:19s} ann vol = {daily.std() * np.sqrt(252):6.1%}  "
+        f"sharpe = {excess.mean() / excess.std() * np.sqrt(252):5.2f}  "
+    )
+
+
 def run_config(key):
     name, T, long_only = key
     daily, stats = run_backtest(
@@ -110,10 +122,7 @@ def run_config(key):
     )
     col = f"{name}_{T}" + ("_lo" if long_only else "")
     stats["strategy"] = col
-    excess = daily - rf.reindex(daily.index)
-    line = (
-        f"{col:19s} ann vol = {daily.std() * np.sqrt(252):6.1%}  "
-        f"sharpe = {excess.mean() / excess.std() * np.sqrt(252):5.2f}  "
+    line = summary(col, daily) + (
         f"mean turnover = {stats['turnover'].mean():5.2f}  "
         f"mean predicted vol = {stats['predicted_vol'].mean():6.1%}"
     )
@@ -126,7 +135,8 @@ if __name__ == "__main__":
         for long_only in [False, True]
         for T in WINDOWS
         for name in ESTIMATORS
-        if not (long_only and name == "one_over_n")  # 1/N is already long only
+        # 1/N is already long only, and its weights don't depend on T
+        if not (name == "one_over_n" and (long_only or T != WINDOWS[0]))
     ]
     all_returns = {}
     all_stats = []
@@ -145,19 +155,12 @@ if __name__ == "__main__":
         .loc[RANK_START:RANK_END]
         .mean()
     )
-    hold = returns.loc[returns.index >= "2005-02-01"]
+    hold = returns.loc[returns.index >= BACKTEST_START]
     value = (1 + hold).cumprod() @ (w0 / w0.sum())
-    daily = value / value.shift()
-    daily.iloc[0] = value.iloc[0]
-    daily = daily - 1
+    daily = value.pct_change()
+    daily.iloc[0] = value.iloc[0] - 1
     all_returns["index_proxy"] = daily
-
-    excess = daily - rf.reindex(daily.index)
-    print(
-        f"{'index_proxy':19s} ann vol = {daily.std() * np.sqrt(252):6.1%}  "
-        f"sharpe = {excess.mean() / excess.std() * np.sqrt(252):5.2f}  "
-        f"(buy and hold, no rebalances)"
-    )
+    print(summary("index_proxy", daily) + "(buy and hold, no rebalances)")
 
     pd.DataFrame(all_returns).to_csv(root / "data/backtest_returns.csv")
     pd.concat(all_stats).to_csv(root / "data/backtest_stats.csv")
