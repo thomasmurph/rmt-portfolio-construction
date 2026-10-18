@@ -23,7 +23,7 @@ The universe is the 300 S&P 500 stocks with the highest average dollar volume ov
 
 Portfolios rebalance on the first trading day of each month from February 2005. At each rebalance, the covariance is estimated from the previous T = 252, 504 or 1008 trading days, giving q = N/T ≈ 1.2, 0.6 and 0.3. Weights are then held without trading until the next rebalance. Each estimator is run unconstrained (closed-form minimum variance) and long-only (SLSQP).
 
-Estimators: sample covariance; eigenvalue clipping (Laloux et al. 1999) ; Ledoit-Wolf shrinkage; and the rotationally invariant estimator (Bun et al. 2017).
+Estimators: sample covariance; eigenvalue clipping (Laloux et al. 1999); Ledoit-Wolf shrinkage; and the rotationally invariant estimator (Bun et al. 2017).
 ## Results
 
 ![Realized out-of-sample volatility by estimator, window, and constraint set](figs/backtest_vol.png)
@@ -33,6 +33,7 @@ Estimators: sample covariance; eigenvalue clipping (Laloux et al. 1999) ; Ledoit
 ![Rolling realized volatility through time](figs/rolling_vol.png)
 
 *Trailing 126-day realized volatility for the best cleaned configuration, the sample covariance in the noisy q ≈ 0.6 regime, and the benchmarks.*
+
 <!-- table:start -->
 | strategy | window | ann. vol | Sharpe | mean monthly turnover |
 |---|---|---|---|---|
@@ -46,7 +47,7 @@ Estimators: sample covariance; eigenvalue clipping (Laloux et al. 1999) ; Ledoit
 <!-- table:end -->
 
 Rows are the unconstrained (shorting allowed) portfolios. Sharpe is excess of the 13-week T-bill rate.
-Turnover is one-way, ½·Σ|w_new − w_drifted| per monthly rebalance, as a fraction of portfolio value (4.1 = 410%).
+Turnover is one-way, ½·Σ|w_new − w_drifted| per monthly rebalance, as a fraction of portfolio value (2.08 = 208%).
 
 ## Limitations
 Primarily these results are limited by the survivorship bias inherent to the stock universe, which uses today's S&P 500 constituents back to 2005.
