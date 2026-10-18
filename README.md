@@ -65,6 +65,6 @@ uv run python rmt/data.py              # download prices from yfinance into data
 uv run python scripts/run_backtest.py  # walk-forward backtest -> data/backtest_*.csv
 uv run python scripts/plot_backtest.py # figs/backtest_vol.png, figs/rolling_vol.png
 uv run python scripts/plot_spectrum.py # figs/spectrum.png
-uv run python scripts/make_table.py # table in README.md
+uv run python scripts/make_table.py    # table in README.md
 ```
 Numbers may shift slightly due to yfinance revising adjusted close prices.
