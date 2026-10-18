@@ -13,6 +13,7 @@ import pandas as pd
 import yfinance as yf
 
 DOWNLOAD_START = "2000-09-01"
+DOWNLOAD_END = "2026-06-11"  # exclusive, last day is jun 10
 WINDOW_START = "2001-01-03"  # returns start jan 4, jan 2-3 are dropped
 RANK_START, RANK_END = "2001-01-01", "2004-12-31"
 N_TARGET = 300
@@ -23,9 +24,9 @@ COVERAGE_MIN = 0.995  # minimum acceptable coverage over the window
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 
-def download_panels(tickers, start):
+def download_panels(tickers, start, end):
     """Download Adj and split-adjusted Close and Volume."""
-    raw = yf.download(tickers, start=start, auto_adjust=False)
+    raw = yf.download(tickers, start=start, end=end, auto_adjust=False)
     if raw is None or raw.empty:
         raise RuntimeError("Yahoo Data Download Failed")
     adj_close = raw["Adj Close"]
@@ -34,9 +35,9 @@ def download_panels(tickers, start):
     return adj_close, close, volume
 
 
-def download_risk_free(start):
+def download_risk_free(start, end):
     """13 week t-bill yield for later reference"""
-    irx = download_panels(["^IRX"], start)[1]["^IRX"]
+    irx = download_panels(["^IRX"], start, end)[1]["^IRX"]
     return (irx.ffill() / 100 / 252).rename("rf_daily")
 
 
@@ -81,17 +82,17 @@ def run_pipeline(universe_path, data_dir=DATA_DIR):
     data_dir.mkdir(exist_ok=True)
     universe = pd.read_csv(universe_path)
 
-    spy_close = download_panels(["SPY"], DOWNLOAD_START)[1]["SPY"]
+    spy_close = download_panels(["SPY"], DOWNLOAD_START, DOWNLOAD_END)[1]["SPY"]
     calendar = spy_close.dropna().index
 
     adj_close, close, volume = download_panels(
-        universe["symbol"].tolist(), DOWNLOAD_START
+        universe["symbol"].tolist(), DOWNLOAD_START, DOWNLOAD_END
     )
 
     adj_close = adj_close.reindex(calendar)
     close = close.reindex(calendar)
     volume = volume.reindex(calendar)
-    rf = download_risk_free(DOWNLOAD_START).reindex(calendar).ffill()
+    rf = download_risk_free(DOWNLOAD_START, DOWNLOAD_END).reindex(calendar).ffill()
 
     tickers, counts = select_tickers(adj_close, close, volume)
     filter_counts = {"universe": len(universe)}
